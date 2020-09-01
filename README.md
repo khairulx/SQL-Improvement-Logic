@@ -1,7 +1,6 @@
 # SQL Improvement Logic Test
-SQL Improvement Logic Test repo was created by [Oudelha Mourad](https://github.com/oudelham/) to answer job [interview question](Interview%20Test%20Program%2022032019.pdf) B) SQL Improvement Logic Test which is related to SQL query optimization for speed.
-## Total time spent
-5 hours.
+SQL Improvement Logic Test which is related to SQL query performance optimization.
+
 ## Optimizing SQL for speed 
 * **Use MySQL Full-Text Search ability instead of LIKE predicate**: Avoid using wildcard (%) at the beginning of a predicate ([in our case](original.sql): LIKE '%キャビンアテンダント%'), as it causes full table scan and will cause dramatic slow down of the query execution. The solution is to use MySQL Full-Text Search ability. This will implicate creating full text indexes for the fields involved in the LIKE predicates and replace the LIKE predicates with MySQL Full-Text Search Function MATCH(cols....) AGAINST ('キャビンアテンダント'). This can be achieved by the following queries:
 ```
