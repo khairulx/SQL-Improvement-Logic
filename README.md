@@ -1,8 +1,22 @@
 # SQL Improvement Logic Test
 SQL Improvement Logic Test which is related to SQL query performance optimization.
 
-## Optimizing SQL for speed 
-* **Use MySQL Full-Text Search ability instead of LIKE predicate**: Avoid using wildcard (%) at the beginning of a predicate ([in our case](original.sql): LIKE '%キャビンアテンダント%'), as it causes full table scan and will cause dramatic slow down of the query execution. The solution is to use MySQL Full-Text Search ability. This will implicate creating full text indexes for the fields involved in the LIKE predicates and replace the LIKE predicates with MySQL Full-Text Search Function MATCH(cols....) AGAINST ('キャビンアテンダント'). This can be achieved by the following queries:
+## Tip 1: Avoid Like Expressions With Leading Wildcards (%)
+The predicate LIKE '%キャビンアテンダン' causes full table scan. 
+
+## Tip 2: Take Advantage of MySQL Full-Text Searches
+If you are faced with a situation where you need to search data using wildcards and you don't want your database to underperform, you should consider using MySQL full-text search (FTS) because it is far much faster than queries using wildcard characters
+
+## Tip 3: Index All Columns Used in 'where', 'order by', 'left join', 'inner join', and 'group by' Clauses
+MySQL allows you to index database tables, making it possible to quickly seek to records without performing a full table scan first and thus significantly speeding up query execution. 
+
+## Tip 4: Avoid OR conditions
+The reason will be the connection between the two conditions - the OR operator, which makes the database fetch the results of each part of the condition separately.
+An alternative way to look at this query can be to use Full-Text Searches
+
+## Tip 5:Avoid sorting with a mixed order
+MySQL (and so many other relational databases), cannot use indexes when sorting with a mixed order (both ASC and DESC in the same ORDER BY clause). This changed with the release of the reversed indexes functionality and MySQL 8.x.
+
 ```
 -- Creating full text indexes
 ALTER TABLE JobCategories ADD FULLTEXT(`name`);
@@ -126,7 +140,6 @@ ORDER BY Jobs.sort_order desc,
 Jobs.id DESC LIMIT 50 OFFSET 0
 ```
 
-* **Use indexes for all predicates**: The predicates in the clauses: (LEFT JOIN, INNER JOIN, WHERE, GROUP BY and ORDER BY) should all be indexed. This can be achieved by the following queries:
 ```
 ALTER TABLE Jobs ADD INDEX Jobs_idx (id,sort_order,deleted,job_category_id,job_type_id,publish_status);
 ALTER TABLE Personalities ADD INDEX Personalities_idx (id,deleted);
@@ -144,8 +157,4 @@ ALTER TABLE job_categories ADD INDEX job_categories_idx (id,deleted);
 ALTER TABLE job_types ADD INDEX job_types_idx (id,deleted);
 ```
 
-* **More SQL queries optimization Rules:**: 
-	* Keep the keys consistent in one type of data (foreign keys and there corresponding primary keys should be of same type) to avoid data conversion in comparison which will tremendously slow down the query. [In our case](original.sql) we do not have information about tables structures and fields type, thus we give this rule as general recommendation only.
-	* Start with the inner join as it will limit the number of returned records, however this kind of optimization should be done by MySQL optimizer.
-	* If possible use inner join, instead of outer join (in our case left join) as outer join limits Query optimization possibilities. Unfortunately this rule cannot be applied as it will change the result of the [query](original.sql) and will give wrong/incomplete result.
- 
+
